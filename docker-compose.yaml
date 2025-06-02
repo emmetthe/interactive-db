@@ -6,7 +6,6 @@ services:
     volumes:
       - ./:/app
       - node_modules:/app/node_modules
-    working_dir: /app/db-design
     command: npm run dev
     mem_limit: 1g      # Limit memory usage to 1 GB
     cpus: 1.0          # Limit to 1 CPU core

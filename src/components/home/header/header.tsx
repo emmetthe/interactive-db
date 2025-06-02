@@ -8,7 +8,7 @@ const Header = () => (
         <a href="#contact" className="hover:text-blue-400">Contact</a>
       </nav>
       <div className="hidden md:block">
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Get Started</button>
+        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer">Get Started</button>
       </div>
     </div>
   </header>
