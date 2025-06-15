@@ -20,10 +20,13 @@ import {
 } from 'react-icons/fa';
 
 export default function Sidebar() {
+  // State for if sidebar is expanded or collapsed
   const [isOpen, setIsOpen] = useState(true);
 
   return (
+    // Sidebar container
     <aside className={`bg-gray-900 text-white h-full p-4 transition-all duration-300 flex flex-col ${isOpen ? 'w-48' : 'w-14'}`}>
+      {/* Project section with toggle button */}
       <SidebarSection
         title="Project"
         isOpen={isOpen}
@@ -37,6 +40,7 @@ export default function Sidebar() {
         ]}
       />
 
+      {/* View section */}
       <SidebarSection
         title="View"
         isOpen={isOpen}
@@ -48,6 +52,7 @@ export default function Sidebar() {
         ]}
       />
 
+      {/* Tools section */}
       <SidebarSection
         title="Tools"
         isOpen={isOpen}
@@ -58,6 +63,7 @@ export default function Sidebar() {
         ]}
       />
 
+      {/* Settings section */}
       <SidebarSection
         title="Settings"
         isOpen={isOpen}

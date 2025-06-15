@@ -1,39 +1,38 @@
-import SidebarItem from '../item/sidebarItem';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-
-interface Item {
-  label: string;
-  icon: React.ReactElement;
-}
+import SidebarItem from '../item/sidebarItem';
 
 interface SidebarSectionProps {
-  title: string;
-  items: Item[];
-  isOpen: boolean;
-  showToggle?: boolean;
-  onToggle?: () => void;
+  title: string; // Section title (e.g., "Project", "View")
+  isOpen: boolean; // Whether the sidebar is expanded
+  items: { label: string; icon: React.ReactElement }[]; // List of items in the section
+  showToggle?: boolean; // show the expand/collapse toggle
+  onToggle?: () => void; // Handler for toggling sidebar open/close
 }
 
-export default function SidebarSection({ title, items, isOpen, showToggle = false, onToggle }: SidebarSectionProps) {
+export default function SidebarSection({ title, isOpen, items, showToggle = false, onToggle }: SidebarSectionProps) {
   return (
-    <div className="mt-2">
-      <div className="flex items-center justify-between text-sm font-semibold mb-2 text-gray-400">
-        {isOpen && <span>{title}</span>}
+    <section className="mb-6">
+      <div className="flex items-center justify-between mb-2">
+        {/* Show section title if sidebar is open */}
+        {isOpen && <span className="font-semibold text-xs uppercase tracking-wider">{title}</span>}
+        {/* Toggle button for expanding/collapsing sidebar */}
         {showToggle && (
           <button
             onClick={onToggle}
-            className="text-gray-400 hover:text-white transition-colors cursor-pointer text-sm"
-            title="Toggle Sidebar"
+            className="ml-auto text-gray-400 hover:text-white transition-colors text-xs"
+            aria-label="Toggle sidebar"
           >
+            {/* Simple icon for toggle */}
             {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
           </button>
         )}
       </div>
-      <div className="space-y-1">
-        {items.map((item, idx) => (
-          <SidebarItem key={idx} label={item.label} icon={item.icon} isOpen={isOpen} />
+      {/* Render each sidebar item */}
+      <div className="flex flex-col gap-1">
+        {items.map((item) => (
+          <SidebarItem key={item.label} label={item.label} icon={item.icon} isOpen={isOpen} />
         ))}
       </div>
-    </div>
+    </section>
   );
 }
