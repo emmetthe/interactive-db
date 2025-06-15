@@ -9,7 +9,7 @@ export default function ProjectTitle() {
   const [editing, setEditing] = useState<boolean>(false);
 
   return (
-    <div className="inline-block max-w-[80vw] sm:max-w-xs min-h-[2.25rem]"> {/* ✅ consistent min height */}
+    <div className="inline-block max-w-[80vw] sm:max-w-xs min-h-[2.25rem]"> {/*consistent min height */}
       {editing ? (
         <input
           className="bg-gray-800 text-white text-center border-b border-white outline-none w-full text-lg font-medium truncate"

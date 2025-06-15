@@ -1,7 +1,7 @@
 'use client';
 
-import Dropdown from './dropdown';
-import { Menu } from './menuItems';
+import Dropdown from '../dropdown/dropdown';
+import { Menu } from '../items/menuItems';
 
 interface MenuButtonProps {
   menu: Menu; // Name of the menu (File, Edit, etc.)

@@ -1,5 +1,5 @@
 import HomeButton from './HomeButton/homeButton';
-import MenuItems from './Menu/menuItems';
+import MenuItems from './Menu/items/menuItems';
 import ProjectTitle from './ProjectTitle/projectTitle';
 import ToolbarActions from './Actions/actions';
 
