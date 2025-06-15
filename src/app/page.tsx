@@ -1,9 +1,9 @@
-import Header from '../components/home/header/header';
-import Hero from '../components/home/hero/hero';
-import Features from '../components/home/features/features';
-import Pricing from '../components/home/section2/section2';
-import Contact from '../components/home/contact/contact';
-import Footer from '../components/home/footer/footer';
+import Header from '../components/Home/header/header';
+import Hero from '../components/Home/hero/hero';
+import Features from '../components/Home/features/features';
+import Pricing from '../components/Home/section2/section2';
+import Contact from '../components/Home/contact/contact';
+import Footer from '../components/Home/footer/footer';
 
 export default function HomePage() {
   return (

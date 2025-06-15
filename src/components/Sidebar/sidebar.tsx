@@ -1,6 +1,6 @@
 'use client';
 
-import SidebarSection from './section/sidebarSection';
+import SidebarSection from './Section/sidebarSection';
 import { useState } from 'react';
 import {
   FaTable,
