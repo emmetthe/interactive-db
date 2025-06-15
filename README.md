@@ -48,6 +48,18 @@ docker compose down
 ```
 ---
 
+### 📋 Installing New Dependencies
+To install new dependencies for your project, look for the container name 
+```bash
+docker ps
+```
+Then open the container shell and install the dependency
+```bash
+docker exec -it <container_id> sh
+
+npm install react-icons
+```
+
 ### 📋 Common Docker Commands
 
 | Task                    | Command                             |

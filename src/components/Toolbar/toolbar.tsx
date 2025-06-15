@@ -5,7 +5,7 @@ import ToolbarActions from './Actions/actions';
 
 export default function Toolbar() {
   return (
-    <header className="w-full flex flex-wrap items-center justify-between p-3 bg-gray-900 text-white shadow">
+    <header className="w-full flex flex-wrap items-center justify-between p-1 bg-gray-900 text-white shadow">
       {/* Left Section */}
       <div className="flex items-center space-x-4 flex-shrink-0">
         <HomeButton />
