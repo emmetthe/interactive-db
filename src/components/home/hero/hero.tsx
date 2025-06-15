@@ -21,6 +21,7 @@ export default function Hero() {
       <FadeIn delay={0.2}>
         <p className="mt-6 text-lg sm:text-xl text-gray-300">Streamline your workflow with our powerful, intuitive tools.</p>
       </FadeIn>
+      {/* buttons to get to design page */}
       <FadeIn delay={0.4}>
         <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
           <button
