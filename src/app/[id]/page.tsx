@@ -1,5 +1,6 @@
 import Sidebar from '@/components/Sidebar/sidebar';
 import Toolbar from '@/components/Toolbar/toolbar';
+import Canvas from '@/components/Canvas/canvas';
 
 type PageProps = {
   params: {
@@ -12,10 +13,9 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div>
-      <Toolbar />
-      <Sidebar />
-      {/* <h1 className="text-2xl font-bold">Welcome to page: {id}</h1>
-      <p>This page was generated using the ID in the URL.</p> */}
+      {/* <Toolbar />
+      <Sidebar /> */}
+      <Canvas />
     </div>
   );
 }
