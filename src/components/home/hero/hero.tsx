@@ -1,6 +1,6 @@
 'use client';
 import FadeIn from '../fadeIn/fadeIn';
-import generateUniqueId from '../../../utility/generateId';
+import generateUniqueId from 'utils/generateId';
 import { useRouter } from 'next/navigation';
 
 export default function Hero() {

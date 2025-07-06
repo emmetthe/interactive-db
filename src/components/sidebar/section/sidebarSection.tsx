@@ -1,5 +1,5 @@
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import SidebarItem from '../Item/sidebarItem';
+import SidebarItem from '../item/sidebarItem';
 
 interface SidebarSectionProps {
   title: string; // Section title (e.g., "Project", "View")

@@ -1,7 +1,7 @@
-import HomeButton from './HomeButton/homeButton';
-import MenuItems from './Menu/items/menuItems';
-import ProjectTitle from './ProjectTitle/projectTitle';
-import ToolbarActions from './Actions/actions';
+import HomeButton from './homeButton/homeButton';
+import MenuItems from './menu/items/menuItems';
+import ProjectTitle from './projectTitle/projectTitle';
+import ToolbarActions from './actions/actions';
 
 export default function Toolbar() {
   return (

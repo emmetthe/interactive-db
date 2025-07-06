@@ -1,6 +1,6 @@
-import Sidebar from '@/components/Sidebar/sidebar';
-import Toolbar from '@/components/Toolbar/toolbar';
-import Canvas from '@/components/Canvas/canvas';
+import Sidebar from '@/components/sidebar/sidebar';
+import Toolbar from '@/components/toolbar/toolbar';
+import Canvas from '@/components/canvas/canvas';
 
 type PageProps = {
   params: {

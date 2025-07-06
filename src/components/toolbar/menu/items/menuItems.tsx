@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import MenuButton from '../butons/menuButton';
+import MenuButton from '../buttons/menuButton';
 
 // Define the menu items and sub-options
 export const menuData = {
