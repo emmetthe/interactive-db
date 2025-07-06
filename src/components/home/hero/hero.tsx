@@ -1,13 +1,13 @@
 'use client';
 import FadeIn from '../fadeIn/fadeIn';
-import generateUniqueId from 'utils/generateId';
 import { useRouter } from 'next/navigation';
+import { getWorkspaceId } from '@/utils/workspaceID';
 
 export default function Hero() {
   const router = useRouter();
 
   const getSessionId = () => {
-    const uniqueId = generateUniqueId();
+    const uniqueId = getWorkspaceId();
     router.push(`/${uniqueId}`);
   };
 

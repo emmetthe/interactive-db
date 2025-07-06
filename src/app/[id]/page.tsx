@@ -1,5 +1,3 @@
-import Sidebar from '@/components/sidebar/sidebar';
-import Toolbar from '@/components/toolbar/toolbar';
 import Canvas from '@/components/canvas/canvas';
 
 type PageProps = {
@@ -13,8 +11,6 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div>
-      {/* <Toolbar />
-      <Sidebar /> */}
       <Canvas />
     </div>
   );
