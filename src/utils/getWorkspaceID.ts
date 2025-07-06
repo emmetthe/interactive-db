@@ -2,7 +2,7 @@ import { customAlphabet } from 'nanoid';
 
 const UUID_KEY = 'uuid';
 // Generates a random ID of 25 characters using the specified alphabet
-const randomId = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyz', 25);
+const randomId = customAlphabet('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 25);
 
 export const generateId = () => randomId();
 
