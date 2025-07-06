@@ -1,7 +1,7 @@
 'use client';
 import FadeIn from '../fadeIn/fadeIn';
 import { useRouter } from 'next/navigation';
-import { getWorkspaceId } from '@/utils/workspaceID';
+import { getWorkspaceId } from '@/utils/getWorkspaceID';
 
 export default function Hero() {
   const router = useRouter();
