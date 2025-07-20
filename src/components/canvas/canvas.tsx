@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import TableNode from './table/table';
+import TableNode from '@/components/table/table';
 import Sidebar from '@/components/sidebar/sidebar';
 import Toolbar from '@/components/toolbar/toolbar';
 
