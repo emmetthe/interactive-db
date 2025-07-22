@@ -1,4 +1,7 @@
+'use client';
+import { useParams } from 'next/navigation';
 import Canvas from '@/components/canvas/canvas';
+import { TableProvider } from '@/context/table/tableProvider';
 
 type PageProps = {
   params: {
@@ -6,12 +9,15 @@ type PageProps = {
   };
 };
 
-export default async function Page({ params }: PageProps) {
-  const { id } = await params;
+export default function Page({ params }: PageProps) {
+  const { id } = useParams();
+  const workspaceId = id as string;
 
   return (
     <div>
-      <Canvas />
+      <TableProvider workspaceId={workspaceId}>
+        <Canvas />
+      </TableProvider>
     </div>
   );
 }

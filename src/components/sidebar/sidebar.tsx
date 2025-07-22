@@ -1,7 +1,7 @@
 'use client';
-
 import SidebarSection from './section/sidebarSection';
 import { useState } from 'react';
+import { useTable } from '@/hooks/useTable';
 import {
   FaTable,
   FaProjectDiagram,
@@ -22,6 +22,11 @@ import {
 export default function Sidebar() {
   // State for if sidebar is expanded or collapsed
   const [isOpen, setIsOpen] = useState(true);
+  const { addTable } = useTable();
+
+  const handleNewTable = () => {
+    addTable();
+  };
 
   return (
     // Sidebar container
@@ -33,7 +38,7 @@ export default function Sidebar() {
         onToggle={() => setIsOpen(!isOpen)}
         showToggle
         items={[
-          { label: 'New Table', icon: <FaTable /> },
+          { label: 'New Table', icon: <FaTable />, onClick: handleNewTable },
           { label: 'New Relationship', icon: <FaProjectDiagram /> },
           { label: 'Import', icon: <FaFileImport /> },
           { label: 'Export', icon: <FaFileExport /> }
