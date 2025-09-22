@@ -48,9 +48,10 @@ export default function CanvasHeader({ workspaceName, onWorkspaceNameChange }: C
           <Database className="h-6 w-6 text-blue-600" />
           <span className="text-lg font-semibold text-gray-900">DataSketch</span>
         </Link>
-        
+
         <div className="h-6 w-px bg-gray-300" />
-        
+
+        {/* workspace name */}
         {isEditing ? (
           <input
             ref={inputRef}
@@ -76,12 +77,13 @@ export default function CanvasHeader({ workspaceName, onWorkspaceNameChange }: C
           <Save className="h-4 w-4" />
           <span className="hidden sm:inline">Save</span>
         </button>
-        
+
         <button className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
           <Share2 className="h-4 w-4" />
           <span className="hidden sm:inline">Share</span>
         </button>
-        
+
+        {/* settings section */}
         <div className="relative">
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -91,28 +93,27 @@ export default function CanvasHeader({ workspaceName, onWorkspaceNameChange }: C
             <span className="hidden sm:inline">Settings</span>
             <ChevronDown className="h-4 w-4" />
           </button>
-          
+
+          {/* settings drop down*/}
           {showSettings && (
             <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
               <div className="p-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Background Color
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
                   <div className="flex space-x-2">
                     <button className="w-6 h-6 rounded bg-white border-2 border-gray-300" />
                     <button className="w-6 h-6 rounded bg-gray-100 border-2 border-transparent" />
                     <button className="w-6 h-6 rounded bg-blue-50 border-2 border-transparent" />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded border-gray-300" />
                     <span className="text-sm text-gray-700">Public workspace</span>
                   </label>
                 </div>
-                
+
                 <div>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded border-gray-300" />
@@ -122,6 +123,13 @@ export default function CanvasHeader({ workspaceName, onWorkspaceNameChange }: C
               </div>
             </div>
           )}
+        </div>
+
+        {/* login button */}
+        <div className="flex items-center space-x-4">
+          <Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            Sign In
+          </Link>
         </div>
       </div>
     </header>

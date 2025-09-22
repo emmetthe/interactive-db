@@ -10,6 +10,10 @@ import ContextMenu from './context-menu';
 import { Table, Column, Relationship } from '@/types/database';
 import { generateTableColor } from '@/lib/utils';
 
+// Default table dimensions
+const DEFAULT_TABLE_WIDTH = 240;
+const DEFAULT_TABLE_HEIGHT = 150;
+
 export default function Canvas() {
   const [workspaceName, setWorkspaceName] = useState('Untitled Workspace');
   const [tables, setTables] = useState<Table[]>([]);
@@ -65,6 +69,10 @@ export default function Canvas() {
         position: {
           x: tableX,
           y: tableY
+        },
+        size: {
+          width: DEFAULT_TABLE_WIDTH,
+          height: DEFAULT_TABLE_HEIGHT
         },
         color: generateTableColor(tables.length),
         columns: [
@@ -267,6 +275,7 @@ export default function Canvas() {
                     table={table}
                     isSelected={selectedTable === table.id}
                     isEditingMode={isEditingMode}
+                    zoom={zoom}
                     onSelect={() => handleTableSelect(table.id)}
                     onUpdate={(updates) => updateTable(table.id, updates)}
                     onContextMenu={(e) => handleTableContextMenu(e, table.id)}
