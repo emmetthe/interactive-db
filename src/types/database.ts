@@ -1,4 +1,4 @@
-export interface Column {
+export interface Row {
   id: string;
   name: string;
   type: string;
@@ -16,7 +16,11 @@ export interface Table {
     y: number;
   };
   color: string;
-  columns: Column[];
+  rows: Row[];
+  size: {
+    width: number;
+    height: number;
+  }
 }
 
 export interface Relationship {
@@ -24,8 +28,8 @@ export interface Relationship {
   name?: string;
   fromTableId: string;
   toTableId: string;
-  fromColumnId: string;
-  toColumnId: string;
+  fromRowId: string;
+  toRowId: string;
   type: 'one-to-one' | 'one-to-many' | 'many-to-many';
 }
 
@@ -42,4 +46,16 @@ export interface Group {
     height: number;
   };
   color: string;
+}
+
+export interface ContextMenuProps {
+  x: number;
+  y: number;
+  type: 'canvas' | 'table' | 'group';
+  onClose: () => void;
+  onCreateTable: () => void;
+  onCreateGroup?: () => void;
+  onDeleteTable?: () => void;
+  onDeleteGroup?: () => void;
+  onAddRow?: () => void;
 }
