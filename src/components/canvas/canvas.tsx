@@ -9,6 +9,7 @@ import DatabaseTable from './database-table';
 import GroupContainer from './group-container';
 import ContextMenu from './context-menu';
 import CanvasBackground from './canvas-background';
+import TableEditorForm from './table-editor-form';
 import { Table, Row, Relationship, Group } from '@/types/database';
 import { generateTableColor } from '@/lib/utils';
 
@@ -208,7 +209,7 @@ export default function Canvas() {
                 ...table.rows,
                 {
                   id: `row_${Date.now()}`,
-                  name: `row_${table.rows.length + 1}`,
+                  name: `column_name`,
                   type: 'VARCHAR(255)',
                   isPrimary: false,
                   isNullable: true
@@ -310,12 +311,15 @@ export default function Canvas() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  const selectedTableData = tables.find((t) => t.id === selectedTable);
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col h-screen bg-gray-50">
         <CanvasHeader workspaceName={workspaceName} onWorkspaceNameChange={setWorkspaceName} />
 
         <div className="flex flex-1 overflow-hidden">
+          {/* Left Sidebar */}
           <CanvasSidebar
             tables={tables}
             groups={groups}
@@ -340,6 +344,7 @@ export default function Canvas() {
             }}
           />
 
+          {/* Canvas */}
           <div className="flex-1 relative overflow-hidden">
             <CanvasBackground
               ref={canvasRef}
@@ -411,6 +416,24 @@ export default function Canvas() {
               />
             )}
           </div>
+
+          {/* Right Sidebar - Table Editor */}
+          {selectedTableData && editingTable === selectedTable && (
+            <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
+              <div className="p-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900">Edit Table</h3>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4">
+                <TableEditorForm
+                  table={selectedTableData}
+                  onUpdateTable={(updates) => updateTable(selectedTable!, updates)}
+                  onAddRow={() => addRow(selectedTable!)}
+                  onRemoveRow={(rowId) => removeRow(selectedTable!, rowId)}
+                  onUpdateRow={(rowId, updates) => updateRow(selectedTable!, rowId, updates)}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </DndProvider>

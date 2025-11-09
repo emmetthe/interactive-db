@@ -150,11 +150,6 @@ export default function TableColumnRow({
           </button>
         )}
       </div>
-
-      <div className="flex items-center space-x-2 mt-1 absolute bottom-0 left-2 right-2">
-        {!row.isNullable && <span className="text-xs text-red-600 font-medium">NOT NULL</span>}
-        {row.isPrimary && <span className="text-xs text-yellow-600 font-medium">PRIMARY</span>}
-      </div>
     </div>
   );
 }

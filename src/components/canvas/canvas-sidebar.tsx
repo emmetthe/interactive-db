@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Plus, Table2, Link2, Group as GroupIcon, Edit, X } from 'lucide-react';
 import { Table, Relationship, Row, Group } from '@/types/database';
 import SidebarSection from './sidebar-section';
-import TableEditorForm from './table-editor-form';
 
 interface CanvasSidebarProps {
   tables: Table[];
@@ -59,8 +58,6 @@ export default function CanvasSidebar({
       [section]: !prev[section]
     }));
   };
-
-  const selectedTableData = tables.find((t) => t.id === selectedTable);
 
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
@@ -163,19 +160,6 @@ export default function CanvasSidebar({
           </div>
         </SidebarSection>
       </div>
-
-      {selectedTableData && editingTable === selectedTable && (
-        <div className="border-t border-gray-200 p-4 max-h-96 overflow-y-auto">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Edit Table</h3>
-          <TableEditorForm
-            table={selectedTableData}
-            onUpdateTable={(updates) => onUpdateTable(selectedTable!, updates)}
-            onAddRow={() => onAddRow(selectedTable!)}
-            onRemoveRow={(rowId) => onRemoveRow(selectedTable!, rowId)}
-            onUpdateRow={(rowId, updates) => onUpdateRow(selectedTable!, rowId, updates)}
-          />
-        </div>
-      )}
     </div>
   );
 }
