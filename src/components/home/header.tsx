@@ -1,6 +1,16 @@
-import Link from 'next/link';
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { generateId } from '@/utils/getWorkspaceID';
 
 export default function Header() {
+  const router = useRouter();
+
+  const handleStartDesigning = () => {
+    const newWorkspaceId = generateId();
+    router.push(`/canvas/${newWorkspaceId}`);
+  };
+
   return (
     <div className="text-center">
       <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
@@ -12,12 +22,12 @@ export default function Header() {
         in real-time.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link
-          href="/canvas"
+        <button
+          onClick={handleStartDesigning}
           className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
         >
           Start Designing
-        </Link>
+        </button>
       </div>
     </div>
   );

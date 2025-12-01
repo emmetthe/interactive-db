@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import CanvasHeader from './canvas-header';
@@ -12,6 +13,8 @@ import CanvasBackground from './canvas-background';
 import TableEditorForm from './table-editor-form';
 import { Table, Row, Relationship, Group } from '@/types/database';
 import { generateTableColor } from '@/lib/utils';
+import { WebSocketClient, WSMessage } from '@/websocket/websocket-client';
+import { getWorkspaceId } from '@/utils/getWorkspaceID';
 
 const DEFAULT_TABLE_WIDTH = 240;
 const DEFAULT_TABLE_HEIGHT = 150;
@@ -23,8 +26,49 @@ const generateRandomColor = () => {
   return `hsla(${hue}, 70%, 60%, 0.15)`;
 };
 
+interface User {
+  id: string;
+  name: string;
+  color: string;
+}
+
+// Generate or retrieve user ID
+const getUserId = (): string => {
+  if (typeof window === 'undefined') return '';
+  let userId = localStorage.getItem('userId');
+  if (!userId) {
+    userId = `user_${Math.random().toString(36).substring(2, 15)}`;
+    localStorage.setItem('userId', userId);
+  }
+  return userId;
+};
+
+const getUserName = (): string => {
+  if (typeof window === 'undefined') return 'Anonymous';
+  let userName = localStorage.getItem('userName');
+  if (!userName) {
+    userName = `User ${Math.floor(Math.random() * 1000)}`;
+    localStorage.setItem('userName', userName);
+  }
+  return userName;
+};
+
 export default function Canvas() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+
+  // Workspace and connection state
+  const [workspaceId, setWorkspaceId] = useState<string>('');
   const [workspaceName, setWorkspaceName] = useState('Untitled Workspace');
+  const [accessLevel, setAccessLevel] = useState<'view' | 'edit'>('edit');
+  const [activeUsers, setActiveUsers] = useState<User[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+  const [wsClient, setWsClient] = useState<WebSocketClient | null>(null);
+
+  const currentUserId = getUserId();
+  const currentUserName = getUserName();
+
+  // Canvas state
   const [tables, setTables] = useState<Table[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
@@ -44,9 +88,132 @@ export default function Canvas() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const isPanningRef = useRef(false);
   const lastPanPointRef = useRef({ x: 0, y: 0 });
+  const router = useRouter();
+
+  const [isInitialized, setIsInitialized] = useState(false);
+
+// Initialize workspace from URL
+useEffect(() => {
+  // Only run once on mount
+  if (isInitialized) return;
+
+  const urlWorkspaceId = params?.id as string;
+  const urlAccessLevel = (searchParams?.get('access') as 'view' | 'edit') || 'edit';
+
+  if (urlWorkspaceId) {
+    setWorkspaceId(urlWorkspaceId);
+    setAccessLevel(urlAccessLevel);
+    setIsInitialized(true);
+  }
+}, []);
+
+  // Handle WebSocket messages
+  const handleWebSocketMessage = useCallback((message: WSMessage) => {
+    switch (message.type) {
+      case 'sync:state':
+        // Sync all state from server
+        setWorkspaceName(message.state.workspaceName || 'Untitled Workspace');
+        setTables(message.state.tables || []);
+        setGroups(message.state.groups || []);
+        setRelationships(message.state.relationships || []);
+        console.log('State synced from server');
+        break;
+
+      case 'user:joined':
+        console.log(`User ${message.userName} joined`);
+        break;
+
+      case 'user:left':
+        console.log(`User ${message.userId} left`);
+        break;
+
+      case 'users:list':
+        setActiveUsers(
+          message.users.map((user) => ({
+            id: user.id,
+            name: user.name,
+            color: '#000'
+          }))
+        );
+        break;
+
+      case 'workspace:name':
+        setWorkspaceName(message.name);
+        break;
+
+      case 'table:create':
+        setTables((prev) => [...prev, message.table]);
+        break;
+
+      case 'table:update':
+        setTables((prev) => prev.map((table) => (table.id === message.tableId ? { ...table, ...message.updates } : table)));
+        break;
+
+      case 'table:delete':
+        setTables((prev) => prev.filter((table) => table.id !== message.tableId));
+        setRelationships((prev) => prev.filter((rel) => rel.fromTableId !== message.tableId && rel.toTableId !== message.tableId));
+        break;
+
+      case 'group:create':
+        setGroups((prev) => [...prev, message.group]);
+        break;
+
+      case 'group:update':
+        setGroups((prev) => prev.map((group) => (group.id === message.groupId ? { ...group, ...message.updates } : group)));
+        break;
+
+      case 'group:delete':
+        setGroups((prev) => prev.filter((group) => group.id !== message.groupId));
+        break;
+
+      case 'access:denied':
+        alert(message.reason);
+        break;
+
+      default:
+        break;
+    }
+  }, []);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    if (!workspaceId || !currentUserId) return;
+
+    const client = new WebSocketClient({
+      workspaceId,
+      userId: currentUserId,
+      userName: currentUserName,
+      accessLevel,
+      onMessage: handleWebSocketMessage,
+      onConnect: () => {
+        console.log('Connected to workspace');
+        setIsConnected(true);
+      },
+      onDisconnect: () => {
+        console.log('Disconnected from workspace');
+        setIsConnected(false);
+      },
+      onError: (error) => {
+        console.error('WebSocket error:', error);
+      }
+    });
+
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080';
+    client.connect(wsUrl);
+    setWsClient(client);
+
+    return () => {
+      client.disconnect();
+    };
+  }, [workspaceId, currentUserId, currentUserName, accessLevel, handleWebSocketMessage]);
 
   const createNewTable = useCallback(
     (x?: number, y?: number) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to create tables');
+        return;
+      }
+
       let tableX, tableY;
 
       if (x !== undefined && y !== undefined) {
@@ -81,11 +248,24 @@ export default function Canvas() {
       };
 
       setTables((prev) => [...prev, newTable]);
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        wsClient.send({
+          type: 'table:create',
+          table: newTable
+        });
+      }
     },
-    [tables.length, pan.x, pan.y, zoom]
+    [tables.length, pan.x, pan.y, zoom, wsClient, isConnected, accessLevel]
   );
 
   const createNewGroup = useCallback(() => {
+    if (accessLevel === 'view') {
+      alert('You do not have permission to create groups');
+      return;
+    }
+
     const groupX = 150 + groups.length * 40;
     const groupY = 150 + groups.length * 40;
 
@@ -99,26 +279,67 @@ export default function Canvas() {
     };
 
     setGroups((prev) => [...prev, newGroup]);
-  }, [groups.length]);
 
-  const updateTable = useCallback((tableId: string, updates: Partial<Table>) => {
-    setTables((prev) => prev.map((table) => (table.id === tableId ? { ...table, ...updates } : table)));
-  }, []);
+    // Broadcast to other users
+    if (wsClient && isConnected) {
+      wsClient.send({
+        type: 'group:create',
+        group: newGroup
+      });
+    }
+  }, [groups.length, wsClient, isConnected, accessLevel]);
+
+  const updateTable = useCallback(
+    (tableId: string, updates: Partial<Table>) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to edit tables');
+        return;
+      }
+
+      setTables((prev) => prev.map((table) => (table.id === tableId ? { ...table, ...updates } : table)));
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        wsClient.send({
+          type: 'table:update',
+          tableId,
+          updates
+        });
+      }
+    },
+    [wsClient, isConnected, accessLevel]
+  );
 
   const updateGroup = useCallback(
     (groupId: string, updates: Partial<Group> & { moveTables?: { deltaX: number; deltaY: number } }) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to edit groups');
+        return;
+      }
+
       if (updates.moveTables) {
         const group = groups.find((g) => g.id === groupId);
         if (group) {
           setTables((prev) =>
             prev.map((table) => {
               if (group.tableIds.includes(table.id)) {
+                const newPosition = {
+                  x: table.position.x + updates.moveTables!.deltaX,
+                  y: table.position.y + updates.moveTables!.deltaY
+                };
+
+                // Broadcast table position updates
+                if (wsClient && isConnected) {
+                  wsClient.send({
+                    type: 'table:update',
+                    tableId: table.id,
+                    updates: { position: newPosition }
+                  });
+                }
+
                 return {
                   ...table,
-                  position: {
-                    x: table.position.x + updates.moveTables!.deltaX,
-                    y: table.position.y + updates.moveTables!.deltaY
-                  }
+                  position: newPosition
                 };
               }
               return table;
@@ -129,8 +350,17 @@ export default function Canvas() {
 
       const { moveTables, ...groupUpdates } = updates;
       setGroups((prev) => prev.map((group) => (group.id === groupId ? { ...group, ...groupUpdates } : group)));
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        wsClient.send({
+          type: 'group:update',
+          groupId,
+          updates: groupUpdates
+        });
+      }
     },
-    [groups]
+    [groups, wsClient, isConnected, accessLevel]
   );
 
   const checkTableGroupAssignment = useCallback(
@@ -163,20 +393,47 @@ export default function Canvas() {
           const hasTable = group.tableIds.includes(tableId);
 
           if (assignedGroupId === group.id && !hasTable) {
-            return { ...group, tableIds: [...group.tableIds, tableId] };
+            const updatedGroup = { ...group, tableIds: [...group.tableIds, tableId] };
+
+            // Broadcast group update
+            if (wsClient && isConnected) {
+              wsClient.send({
+                type: 'group:update',
+                groupId: group.id,
+                updates: { tableIds: updatedGroup.tableIds }
+              });
+            }
+
+            return updatedGroup;
           } else if (assignedGroupId !== group.id && hasTable) {
-            return { ...group, tableIds: group.tableIds.filter((id) => id !== tableId) };
+            const updatedGroup = { ...group, tableIds: group.tableIds.filter((id) => id !== tableId) };
+
+            // Broadcast group update
+            if (wsClient && isConnected) {
+              wsClient.send({
+                type: 'group:update',
+                groupId: group.id,
+                updates: { tableIds: updatedGroup.tableIds }
+              });
+            }
+
+            return updatedGroup;
           }
 
           return group;
         })
       );
     },
-    [tables, groups]
+    [tables, groups, wsClient, isConnected]
   );
 
   const deleteTable = useCallback(
     (tableId: string) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to delete tables');
+        return;
+      }
+
       setTables((prev) => prev.filter((table) => table.id !== tableId));
       setRelationships((prev) => prev.filter((rel) => rel.fromTableId !== tableId && rel.toTableId !== tableId));
       setGroups((prev) =>
@@ -187,58 +444,155 @@ export default function Canvas() {
       );
       if (selectedTable === tableId) setSelectedTable(null);
       if (editingTable === tableId) setEditingTable(null);
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        wsClient.send({
+          type: 'table:delete',
+          tableId
+        });
+      }
     },
-    [selectedTable, editingTable]
+    [selectedTable, editingTable, wsClient, isConnected, accessLevel]
   );
 
   const deleteGroup = useCallback(
     (groupId: string) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to delete groups');
+        return;
+      }
+
       setGroups((prev) => prev.filter((group) => group.id !== groupId));
       if (selectedGroup === groupId) setSelectedGroup(null);
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        wsClient.send({
+          type: 'group:delete',
+          groupId
+        });
+      }
     },
-    [selectedGroup]
+    [selectedGroup, wsClient, isConnected, accessLevel]
   );
 
-  const addRow = useCallback((tableId: string) => {
-    setTables((prev) =>
-      prev.map((table) =>
-        table.id === tableId
-          ? {
-              ...table,
-              rows: [
-                ...table.rows,
-                {
-                  id: `row_${Date.now()}`,
-                  name: `column_name`,
-                  type: 'VARCHAR(255)',
-                  isPrimary: false,
-                  isNullable: true
-                }
-              ]
-            }
-          : table
-      )
-    );
-  }, []);
+  const addRow = useCallback(
+    (tableId: string) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to edit tables');
+        return;
+      }
 
-  const removeRow = useCallback((tableId: string, rowId: string) => {
-    setTables((prev) =>
-      prev.map((table) => (table.id === tableId ? { ...table, rows: table.rows.filter((row) => row.id !== rowId) } : table))
-    );
-  }, []);
+      const newRow = {
+        id: `row_${Date.now()}`,
+        name: `column_name`,
+        type: 'VARCHAR(255)',
+        isPrimary: false,
+        isNullable: true
+      };
 
-  const updateRow = useCallback((tableId: string, rowId: string, updates: Partial<Row>) => {
-    setTables((prev) =>
-      prev.map((table) =>
-        table.id === tableId
-          ? {
-              ...table,
-              rows: table.rows.map((row) => (row.id === rowId ? { ...row, ...updates } : row))
+      setTables((prev) =>
+        prev.map((table) =>
+          table.id === tableId
+            ? {
+                ...table,
+                rows: [...table.rows, newRow]
+              }
+            : table
+        )
+      );
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        const updatedTable = tables.find((t) => t.id === tableId);
+        if (updatedTable) {
+          wsClient.send({
+            type: 'table:update',
+            tableId,
+            updates: { rows: [...updatedTable.rows, newRow] }
+          });
+        }
+      }
+    },
+    [tables, wsClient, isConnected, accessLevel]
+  );
+
+  const removeRow = useCallback(
+    (tableId: string, rowId: string) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to edit tables');
+        return;
+      }
+
+      setTables((prev) =>
+        prev.map((table) => (table.id === tableId ? { ...table, rows: table.rows.filter((row) => row.id !== rowId) } : table))
+      );
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        const updatedTable = tables.find((t) => t.id === tableId);
+        if (updatedTable) {
+          wsClient.send({
+            type: 'table:update',
+            tableId,
+            updates: { rows: updatedTable.rows.filter((row) => row.id !== rowId) }
+          });
+        }
+      }
+    },
+    [tables, wsClient, isConnected, accessLevel]
+  );
+
+  const updateRow = useCallback(
+    (tableId: string, rowId: string, updates: Partial<Row>) => {
+      if (accessLevel === 'view') {
+        alert('You do not have permission to edit tables');
+        return;
+      }
+
+      setTables((prev) =>
+        prev.map((table) =>
+          table.id === tableId
+            ? {
+                ...table,
+                rows: table.rows.map((row) => (row.id === rowId ? { ...row, ...updates } : row))
+              }
+            : table
+        )
+      );
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        const updatedTable = tables.find((t) => t.id === tableId);
+        if (updatedTable) {
+          wsClient.send({
+            type: 'table:update',
+            tableId,
+            updates: {
+              rows: updatedTable.rows.map((row) => (row.id === rowId ? { ...row, ...updates } : row))
             }
-          : table
-      )
-    );
-  }, []);
+          });
+        }
+      }
+    },
+    [tables, wsClient, isConnected, accessLevel]
+  );
+
+  const handleWorkspaceNameChange = useCallback(
+    (newName: string) => {
+      setWorkspaceName(newName);
+
+      // Broadcast to other users
+      if (wsClient && isConnected) {
+        wsClient.send({
+          type: 'workspace:name',
+          name: newName
+        });
+      }
+    },
+    [wsClient, isConnected]
+  );
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -316,7 +670,14 @@ export default function Canvas() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col h-screen bg-gray-50">
-        <CanvasHeader workspaceName={workspaceName} onWorkspaceNameChange={setWorkspaceName} />
+        <CanvasHeader
+          workspaceName={workspaceName}
+          workspaceId={workspaceId}
+          onWorkspaceNameChange={handleWorkspaceNameChange}
+          activeUsers={activeUsers}
+          currentUserId={currentUserId}
+          accessLevel={accessLevel}
+        />
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar */}
@@ -415,6 +776,12 @@ export default function Canvas() {
                 }}
               />
             )}
+
+            {/* Connection Status Indicator */}
+            <div className="absolute top-4 right-4 flex items-center space-x-2 bg-white px-3 py-2 rounded-lg shadow-md border border-gray-200">
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-xs text-gray-600">{isConnected ? 'Connected' : 'Disconnected'}</span>
+            </div>
           </div>
 
           {/* Right Sidebar - Table Editor */}
@@ -422,6 +789,7 @@ export default function Canvas() {
             <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
               <div className="p-4 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900">Edit Table</h3>
+                {accessLevel === 'view' && <p className="text-sm text-gray-500 mt-1">View only mode</p>}
               </div>
               <div className="flex-1 overflow-y-auto p-4">
                 <TableEditorForm

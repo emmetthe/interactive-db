@@ -2,8 +2,9 @@ services:
   web:
     build: .
     ports:
-      - "3000:3000"
-    command: npm run dev
+      - "3000:3000"  # Next.js port
+      - "8080:8080"  # WebSocket port
+    command: npm run dev:all
     mem_limit: 1g      # Limit memory usage to 1 GB
     cpus: 1.0          # Limit to 1 CPU core
     # volumes:
