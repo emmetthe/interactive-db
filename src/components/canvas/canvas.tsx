@@ -14,7 +14,6 @@ import TableEditorForm from './table-editor-form';
 import { Table, Row, Relationship, Group } from '@/types/database';
 import { generateTableColor } from '@/lib/utils';
 import { WebSocketClient, WSMessage } from '@/websocket/websocket-client';
-import { getWorkspaceId } from '@/utils/getWorkspaceID';
 
 const DEFAULT_TABLE_WIDTH = 240;
 const DEFAULT_TABLE_HEIGHT = 150;
@@ -186,11 +185,9 @@ useEffect(() => {
       accessLevel,
       onMessage: handleWebSocketMessage,
       onConnect: () => {
-        console.log('Connected to workspace');
         setIsConnected(true);
       },
       onDisconnect: () => {
-        console.log('Disconnected from workspace');
         setIsConnected(false);
       },
       onError: (error) => {
@@ -776,12 +773,6 @@ useEffect(() => {
                 }}
               />
             )}
-
-            {/* Connection Status Indicator */}
-            <div className="absolute top-4 right-4 flex items-center space-x-2 bg-white px-3 py-2 rounded-lg shadow-md border border-gray-200">
-              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-xs text-gray-600">{isConnected ? 'Connected' : 'Disconnected'}</span>
-            </div>
           </div>
 
           {/* Right Sidebar - Table Editor */}

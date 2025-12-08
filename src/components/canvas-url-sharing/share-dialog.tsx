@@ -114,15 +114,14 @@ export default function ShareDialog({ isOpen, onClose, workspaceId, workspaceNam
           </div>
         </div>
 
-        {/* Native Share Button (if supported) */}
-        {navigator.share && (
+        {/* Share Button */}
           <button
             onClick={handleShare}
             className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mb-4"
           >
             Share via...
           </button>
-        )}
+        
 
         {/* Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
